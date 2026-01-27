@@ -25,6 +25,11 @@ const HomeView: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 animate-in fade-in duration-700">
+      {/* Hidden H1 for SEO */}
+      <h1 className="sr-only">
+        {category ? `${t(`nav.${category}`)} - ToolStation` : "ToolStation - Free Private Utility Hub"}
+      </h1>
+
       {/* Premium Hero Section */}
       <section className="shrink-0 relative overflow-hidden bg-white dark:bg-slate-950 border-b dark:border-slate-900">
         <div className="absolute inset-0 hero-pattern opacity-60" />
@@ -39,7 +44,7 @@ const HomeView: React.FC = () => {
             </div>
             
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] lg:max-w-4xl">
+              <div className="text-5xl md:text-8xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] lg:max-w-4xl" aria-hidden="true">
                 {category ? t(`nav.${category}`) : (
                   lang === 'ko' ? (
                     <>
@@ -51,7 +56,7 @@ const HomeView: React.FC = () => {
                     </>
                   )
                 )}
-              </h1>
+              </div>
               <p className="text-slate-500 dark:text-slate-400 text-lg md:text-2xl font-bold max-w-2xl leading-relaxed mx-auto lg:mx-0">
                 {t('app.desc')}
               </p>
@@ -68,6 +73,7 @@ const HomeView: React.FC = () => {
                   className="w-full pl-6 pr-28 py-7 bg-transparent outline-none dark:text-white text-xl font-bold placeholder:text-slate-400 dark:placeholder:text-slate-700"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search utilities"
                 />
                 <div className="absolute right-8 flex items-center gap-2 pointer-events-none hidden sm:flex">
                   <span className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 rounded-lg border border-slate-200 dark:border-slate-700">CTRL</span>
@@ -166,6 +172,7 @@ const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t
   <Link 
     to={`/tool/${tool.id}`}
     className="group p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 flex flex-col justify-between relative overflow-hidden"
+    aria-label={`${tool.name[lang]} - ${tool.description[lang]}`}
   >
     {/* Subtle card accent */}
     <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
@@ -173,7 +180,8 @@ const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t
     <div className="space-y-10 relative z-10">
       <div className="flex items-start justify-between">
         <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-indigo-500/30 group-hover:scale-110 group-hover:-rotate-3">
-          {React.cloneElement(tool.icon as React.ReactElement, { size: 36 })}
+          {/* Fix: Cast icon as React.ReactElement<any> to allow 'size' prop in cloneElement */}
+          {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 36 })}
         </div>
         <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-300 dark:text-slate-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-all">
            <ArrowRight size={22} className="transform group-hover:translate-x-1 transition-transform" />

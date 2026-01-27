@@ -61,6 +61,9 @@ const LegalView: React.FC<{ type: 'about' | 'privacy' | 'terms' }> = ({ type }) 
 
   const activeContent = content[type];
 
+  // Updated to reflect the most current state in the 2026 timeline
+  const currentDate = "2026-01-27";
+
   return (
     <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950 p-8 md:p-20">
       <div className="max-w-3xl mx-auto space-y-12 animate-in fade-in duration-500">
@@ -82,7 +85,7 @@ const LegalView: React.FC<{ type: 'about' | 'privacy' | 'terms' }> = ({ type }) 
         </div>
 
         <div className="pt-12 border-t dark:border-slate-800 text-sm text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">
-          {t('common.last_updated')}: 2026-01-01
+          {t('common.last_updated')}: {currentDate}
         </div>
       </div>
     </div>

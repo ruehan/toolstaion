@@ -57,7 +57,8 @@ const ToolDetailView: React.FC = () => {
             </Link>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hidden sm:block">
-                {React.cloneElement(tool.icon as React.ReactElement, { size: 20 })}
+                {/* Fix: Cast icon as React.ReactElement<any> to allow 'size' prop in cloneElement */}
+                {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 20 })}
               </div>
               <div>
                 <h1 className="text-lg font-extrabold text-slate-900 dark:text-white leading-tight">{tool.name[lang]}</h1>
