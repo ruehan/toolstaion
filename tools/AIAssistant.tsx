@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
-import { Sparkles, Loader2, Copy, Check, AlertCircle, AlertTriangle, X, Info } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, AlertCircle, AlertTriangle, X, Info, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
+import { TOOLS } from '../constants';
 
 const AIAssistant: React.FC = () => {
   const [input, setInput] = useState('');
@@ -13,6 +15,14 @@ const AIAssistant: React.FC = () => {
   const [showQuotaModal, setShowQuotaModal] = useState(false);
   const { lang, t } = useLanguage();
 
+  const updateStats = (chars: number) => {
+    const saved = localStorage.getItem('toolstation_stats');
+    const stats = saved ? JSON.parse(saved) : { toolsUsed: 0, charsProcessed: 0, storageSaved: 0 };
+    stats.toolsUsed += 1;
+    stats.charsProcessed += chars;
+    localStorage.setItem('toolstation_stats', JSON.stringify(stats));
+  };
+
   const handleAIAction = async (promptType: 'grammar' | 'summarize' | 'professional' | 'translate') => {
     if (!input.trim()) {
       setError(t('common.input_empty'));
@@ -20,9 +30,7 @@ const AIAssistant: React.FC = () => {
     }
 
     if (!process.env.API_KEY) {
-      setError(lang === 'ko' 
-        ? 'API 키가 설정되지 않았습니다. Vercel 환경 변수에 API_KEY를 추가해주세요.' 
-        : 'API Key is missing. Please add API_KEY to your environment variables.');
+      setError(lang === 'ko' ? 'API 키가 없습니다.' : 'API Key is missing.');
       return;
     }
 
@@ -32,21 +40,15 @@ const AIAssistant: React.FC = () => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       let instruction = '';
-      
       if (lang === 'ko') {
         switch (promptType) {
-          case 'grammar': instruction = '다음 텍스트의 문법과 오타를 교정하고 자연스럽게 다듬어줘. 설명 없이 결과만 출력해: '; break;
-          case 'summarize': instruction = '다음 내용을 핵심 위주로 짧게 요약해줘: '; break;
-          case 'professional': instruction = '다음 텍스트를 비즈니스 상황에 맞는 정중하고 전문적인 말투로 바꿔줘. 결과만 출력해: '; break;
-          case 'translate': instruction = '다음 텍스트를 영어로 번역해줘. 결과만 출력해: '; break;
+          case 'grammar': instruction = '다음 문법 교정: '; break;
+          case 'summarize': instruction = '다음 요약: '; break;
+          case 'professional': instruction = '다음 비즈니스 말투로: '; break;
+          case 'translate': instruction = '다음 영문 번역: '; break;
         }
       } else {
-        switch (promptType) {
-          case 'grammar': instruction = 'Correct grammar and typos in the following text. Output only the result: '; break;
-          case 'summarize': instruction = 'Summarize the following text briefly: '; break;
-          case 'professional': instruction = 'Rewrite the following text in a professional business tone. Output only the result: '; break;
-          case 'translate': instruction = 'Translate the following text into Korean. Output only the result: '; break;
-        }
+        instruction = `${promptType}: `;
       }
 
       const response = await ai.models.generateContent({
@@ -54,15 +56,12 @@ const AIAssistant: React.FC = () => {
         contents: instruction + input,
       });
 
-      setResult(response.text || '');
+      const outputText = response.text || '';
+      setResult(outputText);
+      updateStats(outputText.length);
     } catch (err: any) {
-      // Handle Quota Exceeded (Free Tier limit)
-      const errorMsg = err.message || '';
-      if (errorMsg.includes('429') || errorMsg.toLowerCase().includes('quota') || errorMsg.toLowerCase().includes('exhausted')) {
-        setShowQuotaModal(true);
-      } else {
-        setError(errorMsg || (lang === 'ko' ? 'AI 요청 중 오류가 발생했습니다.' : 'AI error occurred.'));
-      }
+      if (err.message?.includes('429')) setShowQuotaModal(true);
+      else setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -74,130 +73,88 @@ const AIAssistant: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const nextTools = TOOLS.find(t => t.id === 'ai-assistant')?.nextTools || [];
+
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden bg-white dark:bg-slate-950">
-      {/* Quota Exceeded Modal */}
       {showQuotaModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-           <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md" onClick={() => setShowQuotaModal(false)} />
-           <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-300">
-              <button onClick={() => setShowQuotaModal(false)} className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-all">
-                <X size={20} />
-              </button>
-              
-              <div className="flex flex-col items-center text-center gap-6">
-                 <div className="p-6 bg-rose-50 dark:bg-rose-900/20 rounded-[2.5rem] text-rose-500 shadow-sm border border-rose-100 dark:border-rose-900/30">
-                    <AlertTriangle size={48} />
-                 </div>
-                 <div className="space-y-3">
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
-                       {t('error.quota_title')}
-                    </h2>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                       {t('error.quota_desc')}
-                    </p>
-                 </div>
-                 <button 
-                  onClick={() => setShowQuotaModal(false)}
-                  className="w-full py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
-                 >
-                   {t('common.close')}
-                 </button>
-              </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-md">
+           <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border dark:border-slate-800 animate-in zoom-in-95">
+              <h2 className="text-2xl font-black mb-4">{t('error.quota_title')}</h2>
+              <p className="text-slate-500 mb-8">{t('error.quota_desc')}</p>
+              <button onClick={() => setShowQuotaModal(false)} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black">{t('common.close')}</button>
            </div>
         </div>
       )}
 
       {/* Input Side */}
-      <div className="w-full md:w-1/2 p-8 flex flex-col gap-5 border-b md:border-b-0 md:border-r dark:border-slate-800">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Input Context</label>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 animate-pulse">
-             <Sparkles size={10} />
-             {t('common.beta')}
-          </div>
-        </div>
-
+      <div className="w-full md:w-1/2 p-8 flex flex-col gap-5 border-b md:border-b-0 md:border-r dark:border-slate-800 overflow-y-auto">
+        <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Source Input</label>
         <textarea
-          className={`flex-1 min-h-0 p-5 bg-slate-50 dark:bg-slate-900 border ${error ? 'border-rose-500' : 'border-slate-200 dark:border-slate-800'} rounded-[2rem] outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 text-[15px] font-medium leading-relaxed dark:text-slate-100 transition-all resize-none`}
-          placeholder={lang === 'ko' ? "내용을 입력하세요..." : "Paste your text here..."}
+          className="flex-1 min-h-[250px] p-5 bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 rounded-[2rem] outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all resize-none shadow-inner dark:text-white"
           value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            if (error) setError(null);
-          }}
+          onChange={(e) => setInput(e.target.value)}
         />
-        
-        {error && (
-          <div className="p-4 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center gap-2 text-xs font-bold border border-rose-100 dark:border-rose-900/30 shadow-sm animate-in fade-in slide-in-from-top-1">
-            <AlertCircle size={14} className="shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <ActionButton label={t('ai.grammar')} onClick={() => handleAIAction('grammar')} loading={loading} />
-            <ActionButton label={t('ai.summarize')} onClick={() => handleAIAction('summarize')} loading={loading} />
-            <ActionButton label={t('ai.professional')} onClick={() => handleAIAction('professional')} loading={loading} />
-            <ActionButton label={t('ai.translate')} onClick={() => handleAIAction('translate')} loading={loading} />
-          </div>
-          
-          {/* Beta Notice Informational Box */}
-          <div className="p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 flex items-start gap-3">
-             <Info size={16} className="text-indigo-500 shrink-0 mt-0.5" />
-             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-               {t('common.beta_notice')}
-             </p>
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <ActionButton label={t('ai.grammar')} onClick={() => handleAIAction('grammar')} loading={loading} />
+          <ActionButton label={t('ai.summarize')} onClick={() => handleAIAction('summarize')} loading={loading} />
+          <ActionButton label={t('ai.professional')} onClick={() => handleAIAction('professional')} loading={loading} />
+          <ActionButton label={t('ai.translate')} onClick={() => handleAIAction('translate')} loading={loading} />
         </div>
       </div>
 
-      {/* Output Side */}
-      <div className="w-full md:w-1/2 p-8 bg-slate-50/30 dark:bg-slate-900/30 flex flex-col gap-5 overflow-hidden">
+      {/* Result Side */}
+      <div className="w-full md:w-1/2 p-8 bg-slate-50/30 dark:bg-slate-900/30 flex flex-col gap-5">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Intelligence Insight</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">AI Response</label>
           {result && (
-            <button 
-              onClick={copyToClipboard}
-              className="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
-            >
-              {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-              {copied ? t('common.copied') : t('common.copy')}
+            <button onClick={copyToClipboard} className="text-xs font-bold text-indigo-600 flex items-center gap-1.5 hover:underline">
+              {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? t('common.copied') : t('common.copy')}
             </button>
           )}
         </div>
         
-        <div className="flex-1 min-h-0 p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] overflow-y-auto whitespace-pre-wrap dark:text-slate-200 relative shadow-sm leading-8 text-[16px] font-medium tracking-tight">
+        <div className="flex-1 p-8 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-[2.5rem] overflow-y-auto whitespace-pre-wrap dark:text-slate-200 relative shadow-sm leading-8">
           {loading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm transition-all duration-500">
-               <Loader2 className="animate-spin text-indigo-500" size={36} />
-               <p className="text-xs font-black text-slate-500 uppercase tracking-widest">{t('ai.processing')}</p>
-            </div>
-          ) : result ? (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
-               {result}
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-700 text-center space-y-4 opacity-50">
-              <Sparkles size={48} className="mx-auto text-indigo-200 dark:text-indigo-900" />
-              <p className="text-sm font-bold uppercase tracking-widest px-10">
-                {lang === 'ko' ? 'AI 분석 대기 중' : 'Awaiting AI analysis'}
-              </p>
-            </div>
-          )}
+             <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+                <Loader2 className="animate-spin text-indigo-500" size={32} />
+             </div>
+          ) : result || <div className="text-slate-300 dark:text-slate-700 italic">Result will appear here...</div>}
         </div>
+
+        {/* Smart Workflow */}
+        {result && !loading && (
+          <div className="pt-4 border-t dark:border-slate-800 animate-in slide-in-from-bottom-2">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Sparkles size={12} className="text-indigo-500" />
+              {t('workflow.next_step')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {nextTools.map(toolId => {
+                const tool = TOOLS.find(t => t.id === toolId);
+                if (!tool) return null;
+                return (
+                  <Link 
+                    key={tool.id} 
+                    to={`/tool/${tool.id}`}
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-xs font-bold hover:border-indigo-500 transition-all shadow-sm group"
+                  >
+                    {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 14 })}
+                    <span className="text-slate-700 dark:text-slate-300">{tool.name[lang]}</span>
+                    <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 const ActionButton: React.FC<{ label: string, onClick: () => void, loading: boolean }> = ({ label, onClick, loading }) => (
-  <button 
-    disabled={loading}
-    onClick={onClick}
-    className="py-4 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-[13px] text-slate-700 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 transition-all disabled:opacity-50 active:scale-95 shadow-sm"
-  >
+  <button disabled={loading} onClick={onClick} className="py-4 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-xl font-bold text-xs hover:border-indigo-500 transition-all shadow-sm">
     {label}
   </button>
 );

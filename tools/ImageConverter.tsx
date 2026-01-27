@@ -1,16 +1,25 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, Download, FileType, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Upload, Download, FileType, CheckCircle2, Sparkles, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
+import { TOOLS } from '../constants';
 
 const ImageConverter: React.FC = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [targetFormat, setTargetFormat] = useState('image/png');
   const [converting, setConverting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const updateStats = () => {
+    const saved = localStorage.getItem('toolstation_stats');
+    const stats = saved ? JSON.parse(saved) : { toolsUsed: 0, charsProcessed: 0, storageSaved: 0 };
+    stats.toolsUsed += 1;
+    localStorage.setItem('toolstation_stats', JSON.stringify(stats));
+  };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -37,13 +46,16 @@ const ImageConverter: React.FC = () => {
       const dataUrl = canvas.toDataURL(targetFormat);
       setResult(dataUrl);
       setConverting(false);
+      updateStats();
     };
   };
+
+  const nextTools = TOOLS.find(t => t.id === 'image-converter')?.nextTools || [];
 
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden">
       {/* Upload/Setting Side */}
-      <div className="w-full md:w-1/2 p-8 md:p-12 border-b md:border-b-0 md:border-r dark:border-slate-800 flex flex-col gap-10 bg-white dark:bg-slate-900">
+      <div className="w-full md:w-1/2 p-8 md:p-12 border-b md:border-b-0 md:border-r dark:border-slate-800 flex flex-col gap-10 bg-white dark:bg-slate-900 overflow-y-auto">
         <div className="space-y-2">
           <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Source Asset</label>
           <div 
@@ -60,7 +72,6 @@ const ImageConverter: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <p className="font-bold text-lg text-slate-900 dark:text-slate-200">{t('img.upload_prompt')}</p>
-                  <p className="text-xs text-slate-500 uppercase tracking-widest font-black">{t('img.formats_supported')}</p>
                 </div>
               </div>
             )}
@@ -75,15 +86,15 @@ const ImageConverter: React.FC = () => {
               onChange={(e) => setTargetFormat(e.target.value)}
               className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 font-bold text-base dark:text-white"
             >
-              <option value="image/png">PNG Asset (.png)</option>
-              <option value="image/jpeg">JPEG Photo (.jpg)</option>
-              <option value="image/webp">WebP Format (.webp)</option>
+              <option value="image/png">PNG (.png)</option>
+              <option value="image/jpeg">JPEG (.jpg)</option>
+              <option value="image/webp">WebP (.webp)</option>
             </select>
           </div>
           <button 
             disabled={!file || converting}
             onClick={convertImage}
-            className="w-full h-[66px] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl transition-all disabled:opacity-50 shadow-xl shadow-indigo-500/10 active:scale-95"
+            className="w-full h-[66px] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl transition-all disabled:opacity-50 shadow-xl active:scale-95"
           >
             {converting ? t('ai.processing') : t('img.convert')}
           </button>
@@ -93,9 +104,8 @@ const ImageConverter: React.FC = () => {
       {/* Result Side */}
       <div className="w-full md:w-1/2 p-8 md:p-12 bg-slate-50/30 dark:bg-slate-950 flex flex-col items-center justify-center min-h-[400px] relative overflow-y-auto">
         {result ? (
-          <div className="text-center space-y-12 animate-in zoom-in-95 duration-500 w-full max-w-lg">
+          <div className="text-center space-y-12 animate-in zoom-in-95 duration-500 w-full max-w-lg py-10">
             <div className="relative inline-block mx-auto group">
-              <div className="absolute -inset-4 bg-indigo-500/10 rounded-[3rem] blur-2xl group-hover:bg-indigo-500/20 transition-all" />
               <img src={result} className="relative max-h-[450px] mx-auto rounded-[2.5rem] shadow-2xl border-8 border-white dark:border-slate-900" alt="result" />
               <div className="absolute -top-4 -right-4 p-3 bg-emerald-500 text-white rounded-full shadow-lg border-4 border-white dark:border-slate-900">
                 <CheckCircle2 size={32} />
@@ -103,32 +113,47 @@ const ImageConverter: React.FC = () => {
             </div>
             
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-3 px-6 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-indigo-100 dark:border-indigo-500/20">
-                Conversion Successful
-              </div>
               <a 
                 href={result} 
-                download={`toolstation-converted.${targetFormat.split('/')[1]}`}
+                download={`converted.${targetFormat.split('/')[1]}`}
                 className="flex items-center justify-center gap-3 w-full py-5 bg-slate-900 dark:bg-indigo-600 text-white rounded-2xl hover:opacity-95 transition-all font-black text-lg shadow-2xl active:scale-95"
               >
                 <Download size={22} />
                 {t('common.download')}
               </a>
+
+              {/* Smart Workflow */}
+              <div className="pt-8 border-t dark:border-slate-800 text-left">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Sparkles size={12} className="text-indigo-500" />
+                  {t('workflow.next_step')}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {nextTools.map(toolId => {
+                    const tool = TOOLS.find(t => t.id === toolId);
+                    if (!tool) return null;
+                    return (
+                      <Link 
+                        key={tool.id} 
+                        to={`/tool/${tool.id}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl text-xs font-bold hover:border-indigo-500 transition-all shadow-sm group"
+                      >
+                        {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 14 })}
+                        <span className="text-slate-700 dark:text-slate-300">{tool.name[lang]}</span>
+                        <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="text-center space-y-6 max-w-sm animate-in fade-in duration-1000">
+          <div className="text-center space-y-6 max-w-sm">
             <div className="p-8 bg-white dark:bg-slate-900 rounded-full mx-auto w-fit shadow-sm border dark:border-slate-800">
               <FileType size={64} className="text-slate-200 dark:text-slate-700" />
             </div>
-            <div className="space-y-2">
-               <p className="text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest text-xs">
-                Awaiting Input
-              </p>
-              <p className="text-slate-300 dark:text-slate-700 font-medium">
-                {t('img.convert_prompt')}
-              </p>
-            </div>
+            <p className="text-slate-300 dark:text-slate-700 font-medium">{t('img.convert_prompt')}</p>
           </div>
         )}
       </div>

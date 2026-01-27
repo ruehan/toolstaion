@@ -13,16 +13,12 @@ const LegalView: React.FC<{ type: 'about' | 'privacy' | 'terms' }> = ({ type }) 
       title: t('legal.about_title'),
       sections: [
         {
-          h: lang === 'ko' ? '우리의 미션' : 'Our Mission',
-          p: lang === 'ko' 
-            ? 'ToolStation은 복잡한 설치 없이 브라우저에서 즉시 실행되는 고성능 유틸리티를 제공합니다. 사용자의 생산성을 높이는 동시에 개인정보 보호를 최우선 가치로 둡니다.'
-            : 'ToolStation provides high-performance utilities that run instantly in your browser. We aim to enhance productivity while prioritizing user privacy above all else.'
+          h: t('legal.mission_h'),
+          p: t('legal.mission_p')
         },
         {
-          h: lang === 'ko' ? '데이터 보안' : 'Data Security',
-          p: lang === 'ko'
-            ? '모든 작업은 사용자의 기기(Client-side) 내에서만 처리됩니다. 어떠한 이미지나 텍스트도 우리의 서버에 기록되거나 전송되지 않습니다.'
-            : 'All processing happens exclusively on your device (client-side). No images or text are ever logged or transmitted to our servers.'
+          h: t('legal.security_h'),
+          p: t('legal.security_p')
         }
       ]
     },
@@ -98,11 +94,11 @@ const LegalView: React.FC<{ type: 'about' | 'privacy' | 'terms' }> = ({ type }) 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="p-5 bg-white dark:bg-slate-950 border dark:border-slate-800 rounded-2xl flex items-center gap-3">
                     <ShieldCheck size={20} className="text-emerald-500" />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Privacy First Architecture</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t('legal.privacy_badge')}</span>
                  </div>
                  <div className="p-5 bg-white dark:bg-slate-950 border dark:border-slate-800 rounded-2xl flex items-center gap-3">
                     <MessageSquareMore size={20} className="text-blue-500" />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Preparing Paid Scale-up</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t('legal.scale_badge')}</span>
                  </div>
               </div>
             </div>

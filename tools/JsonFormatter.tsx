@@ -1,13 +1,23 @@
 
 import React, { useState } from 'react';
-import { Code, Check, Copy, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Code, Check, Copy, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
+import { TOOLS } from '../constants';
 
 const JsonFormatter: React.FC = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const updateStats = (chars: number) => {
+    const saved = localStorage.getItem('toolstation_stats');
+    const stats = saved ? JSON.parse(saved) : { toolsUsed: 0, charsProcessed: 0, storageSaved: 0 };
+    stats.toolsUsed += 1;
+    stats.charsProcessed += chars;
+    localStorage.setItem('toolstation_stats', JSON.stringify(stats));
+  };
 
   const formatJson = (indent: number = 2) => {
     try {
@@ -16,8 +26,10 @@ const JsonFormatter: React.FC = () => {
         return;
       }
       const parsed = JSON.parse(input);
-      setInput(JSON.stringify(parsed, null, indent));
+      const formatted = JSON.stringify(parsed, null, indent);
+      setInput(formatted);
       setError(null);
+      updateStats(formatted.length);
     } catch (e: any) {
       setError(e.message);
     }
@@ -26,8 +38,11 @@ const JsonFormatter: React.FC = () => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(input);
     setCopied(true);
+    updateStats(input.length);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const nextTools = TOOLS.find(t => t.id === 'json-formatter')?.nextTools || [];
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 overflow-hidden">
@@ -80,12 +95,30 @@ const JsonFormatter: React.FC = () => {
         )}
       </div>
 
-      <div className="shrink-0 p-3 bg-slate-50 dark:bg-slate-950 border-t dark:border-slate-800 flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${error ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]' : input.length > 0 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-slate-400'}`} />
+      {/* Smart Workflow Footer */}
+      <div className="shrink-0 p-3 bg-slate-50 dark:bg-slate-950 border-t dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+          <div className={`w-2 h-2 rounded-full ${error ? 'bg-rose-500' : input.length > 0 ? 'bg-emerald-500' : 'bg-slate-400'}`} />
           <span>{error ? 'Invalid JSON' : input.length > 0 ? 'Valid Format' : 'Idle'}</span>
         </div>
-        <p>Real-time Client Validation</p>
+        
+        {input.length > 10 && !error && (
+          <div className="flex items-center gap-3">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Sparkles size={10} className="text-indigo-500" /> {t('workflow.next_step')}
+            </span>
+            <div className="flex gap-1.5">
+              {nextTools.slice(0, 2).map(id => {
+                const tool = TOOLS.find(t => t.id === id);
+                return tool ? (
+                  <Link key={id} to={`/tool/${id}`} className="px-3 py-1 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-full text-[10px] font-bold text-slate-600 hover:border-indigo-500 transition-all flex items-center gap-1">
+                    {tool.name[lang]} <ArrowRight size={10} />
+                  </Link>
+                ) : null;
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

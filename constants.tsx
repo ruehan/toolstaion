@@ -23,6 +23,8 @@ export interface Tool {
   category: string;
   icon: React.ReactNode;
   disabled?: boolean;
+  nextTools?: string[];
+  themeColor?: string; // Add specific color for premium card styling
 }
 
 export const TOOLS: Tool[] = [
@@ -44,28 +46,29 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'text',
-    icon: <Sparkles size={24} className="text-purple-600" />
+    icon: <Sparkles size={24} />,
+    themeColor: 'purple',
+    nextTools: ['word-counter', 'qr-generator', 'text-converter']
   },
   {
     id: 'ai-image-generator',
     name: { ko: 'AI 이미지 생성기', en: 'AI Image Generator' },
     description: { 
-      ko: '텍스트 설명만으로 고화질 이미지를 즉시 생성합니다.', 
-      en: 'Generate high-quality images instantly from text descriptions.' 
+      ko: '텍스트 설명을 바탕으로 고화질 이미지를 생성합니다. (현재 점검 중)', 
+      en: 'Generate high-quality images from text descriptions. (Under Maintenance)' 
     },
     guide: {
       ko: [
-        { title: "상태", content: "현재 서비스 최적화를 위해 임시 점검 중입니다. 곧 다시 이용하실 수 있습니다." },
-        { title: "팁", content: "상세한 묘사를 추가할수록 더 멋진 결과물이 나옵니다. 영어 프롬프트가 더 정확할 수 있습니다." }
+        { title: "알림", content: "현재 서비스 안정화를 위해 임시 점검 중입니다. 곧 더 나은 기능으로 찾아뵙겠습니다." }
       ],
       en: [
-        { title: "Status", content: "Currently under maintenance for optimization. Please check back later." },
-        { title: "Tip", content: "Detailed descriptions yield better results. You can describe style, lighting, and composition." }
+        { title: "Notice", content: "Currently under maintenance for service stabilization. We will be back soon." }
       ]
     },
     category: 'image',
-    icon: <ImageIcon size={24} className="text-indigo-600" />,
-    disabled: true
+    icon: <ImageIcon size={24} />,
+    themeColor: 'indigo',
+    nextTools: ['image-converter', 'image-compressor']
   },
   {
     id: 'image-converter',
@@ -85,7 +88,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'image',
-    icon: <FileOutput size={24} className="text-blue-500" />
+    icon: <FileOutput size={24} />,
+    themeColor: 'blue',
+    nextTools: ['image-compressor', 'qr-generator']
   },
   {
     id: 'image-compressor',
@@ -105,7 +110,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'image',
-    icon: <Scale size={24} className="text-indigo-500" />
+    icon: <Scale size={24} />,
+    themeColor: 'cyan',
+    nextTools: ['image-converter', 'qr-generator']
   },
   {
     id: 'word-counter',
@@ -125,7 +132,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'text',
-    icon: <Hash size={24} className="text-emerald-500" />
+    icon: <Hash size={24} />,
+    themeColor: 'emerald',
+    nextTools: ['ai-assistant', 'text-converter', 'qr-generator']
   },
   {
     id: 'text-converter',
@@ -145,7 +154,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'text',
-    icon: <Type size={24} className="text-pink-500" />
+    icon: <Type size={24} />,
+    themeColor: 'pink',
+    nextTools: ['ai-assistant', 'word-counter']
   },
   {
     id: 'json-formatter',
@@ -165,7 +176,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'dev',
-    icon: <Braces size={24} className="text-orange-500" />
+    icon: <Braces size={24} />,
+    themeColor: 'orange',
+    nextTools: ['base64-tool', 'word-counter']
   },
   {
     id: 'sql-formatter',
@@ -185,7 +198,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'dev',
-    icon: <Database size={24} className="text-cyan-500" />
+    icon: <Database size={24} />,
+    themeColor: 'teal',
+    nextTools: ['base64-tool', 'json-formatter']
   },
   {
     id: 'base64-tool',
@@ -205,7 +220,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'dev',
-    icon: <ArrowRightLeft size={24} className="text-rose-500" />
+    icon: <ArrowRightLeft size={24} />,
+    themeColor: 'rose',
+    nextTools: ['json-formatter', 'sql-formatter']
   },
   {
     id: 'qr-generator',
@@ -225,7 +242,9 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'utility',
-    icon: <QrCode size={24} className="text-purple-500" />
+    icon: <QrCode size={24} />,
+    themeColor: 'violet',
+    nextTools: ['password-generator']
   },
   {
     id: 'password-generator',
@@ -245,6 +264,8 @@ export const TOOLS: Tool[] = [
       ]
     },
     category: 'utility',
-    icon: <Lock size={24} className="text-amber-500" />
+    icon: <Lock size={24} />,
+    themeColor: 'amber',
+    nextTools: ['qr-generator']
   }
 ];

@@ -1,30 +1,32 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, ArrowRight, Star, Grid3X3, Zap, ShieldCheck, History, Construction, Sparkles } from 'lucide-react';
+import { Search, ArrowRight, Star, Grid3X3, Zap, ShieldCheck, History, Construction, Sparkles, Activity, FileText, HardDrive, ChevronRight } from 'lucide-react';
 import { TOOLS } from '../constants';
 import { Category } from '../types';
 import { useLanguage } from '../LanguageContext';
 import AdSlot from '../components/AdSlot';
 
+interface LocalStats {
+  toolsUsed: number;
+  charsProcessed: number;
+  storageSaved: number;
+}
+
 const HomeView: React.FC = () => {
   const { category } = useParams<{ category: Category }>();
   const [searchQuery, setSearchQuery] = useState('');
   const [recentToolIds, setRecentToolIds] = useState<string[]>([]);
+  const [stats, setStats] = useState<LocalStats>({ toolsUsed: 0, charsProcessed: 0, storageSaved: 0 });
   const { lang, t } = useLanguage();
 
   useEffect(() => {
-    const saved = localStorage.getItem('recentTools');
-    if (saved) {
-      setRecentToolIds(JSON.parse(saved));
-    }
-  }, []);
+    const savedTools = localStorage.getItem('recentTools');
+    if (savedTools) setRecentToolIds(JSON.parse(savedTools));
 
-  const recentTools = useMemo(() => {
-    return recentToolIds
-      .map(id => TOOLS.find(t => t.id === id))
-      .filter((t): t is typeof TOOLS[0] => !!t);
-  }, [recentToolIds]);
+    const savedStats = localStorage.getItem('toolstation_stats');
+    if (savedStats) setStats(JSON.parse(savedStats));
+  }, []);
 
   const filteredTools = useMemo(() => {
     return TOOLS.filter(tool => {
@@ -37,228 +39,216 @@ const HomeView: React.FC = () => {
     });
   }, [category, searchQuery, lang]);
 
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const getThemeColorClass = (color?: string) => {
+    const colors: Record<string, string> = {
+      purple: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 group-hover:bg-purple-600',
+      indigo: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 group-hover:bg-indigo-600',
+      blue: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-600',
+      cyan: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-900/20 group-hover:bg-cyan-600',
+      emerald: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 group-hover:bg-emerald-600',
+      pink: 'text-pink-600 bg-pink-50 dark:bg-pink-900/20 group-hover:bg-pink-600',
+      orange: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 group-hover:bg-orange-600',
+      teal: 'text-teal-600 bg-teal-50 dark:bg-teal-900/20 group-hover:bg-teal-600',
+      rose: 'text-rose-600 bg-rose-50 dark:bg-rose-900/20 group-hover:bg-rose-600',
+      violet: 'text-violet-600 bg-violet-50 dark:bg-violet-900/20 group-hover:bg-violet-600',
+      amber: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 group-hover:bg-amber-600',
+    };
+    return colors[color || 'indigo'];
+  };
+
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      {/* Hidden H1 for SEO */}
-      <h1 className="sr-only">
-        {category ? `${t(`nav.${category}`)} - ToolStation` : "ToolStation - Free Private Utility Hub"}
-      </h1>
-
-      {/* Premium Hero Section */}
-      <section className="shrink-0 relative overflow-hidden bg-white dark:bg-slate-950 border-b dark:border-slate-900">
-        <div className="absolute inset-0 hero-pattern opacity-60" />
-        <div className="absolute top-[-15%] right-[-10%] w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/5 dark:bg-blue-500/15 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-6 md:px-16 pt-24 pb-28 flex flex-col lg:flex-row gap-16 items-center">
-          <div className="flex-1 space-y-12 text-center lg:text-left">
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-indigo-50/80 dark:bg-indigo-900/40 backdrop-blur-md text-indigo-600 dark:text-indigo-300 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-800/50 shadow-sm">
-              <ShieldCheck size={16} className="text-indigo-500" />
-              <span>{t('app.safe_info')}</span>
+    <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-950 overflow-y-auto">
+      {/* Reduced Hero Section with Side Ad */}
+      <section className="shrink-0 relative overflow-hidden border-b dark:border-slate-900 bg-white dark:bg-slate-950">
+        <div className="absolute inset-0 hero-pattern opacity-40" />
+        <div className="absolute top-[-50%] right-[-10%] w-[600px] h-[600px] bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-6 md:px-16 pt-12 pb-12 md:pt-16 md:pb-16 flex flex-col lg:flex-row items-center gap-12">
+          {/* Main Content Column */}
+          <div className="flex-1 max-w-4xl space-y-6">
+            <div className="inline-flex items-center gap-3 px-4 py-2 bg-indigo-50/80 dark:bg-indigo-900/30 backdrop-blur-xl border border-indigo-100/50 dark:border-indigo-800/50 rounded-xl shadow-sm">
+               <ShieldCheck size={16} className="text-indigo-600 animate-pulse" />
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-700 dark:text-indigo-300">{t('app.safe_info')}</span>
             </div>
-            
-            <div className="space-y-6">
-              <div className="text-5xl md:text-8xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] lg:max-w-4xl" aria-hidden="true">
+
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
                 {category ? t(`nav.${category}`) : (
                   lang === 'ko' ? (
-                    <>
-                      모든 도구를 <br className="hidden sm:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-cyan-400">한 곳에서</span>
-                    </>
+                    <>모든 도구를 <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">한 곳에서</span></>
                   ) : (
-                    <>
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-cyan-400">Station</span> for every utility
-                    </>
+                    <><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">Station</span> for every utility</>
                   )
                 )}
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 text-lg md:text-2xl font-bold max-w-2xl leading-relaxed mx-auto lg:mx-0">
+              </h1>
+              <p className="text-base md:text-lg font-bold text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
                 {t('app.desc')}
               </p>
             </div>
-            
-            {/* Search Input */}
-            <div className="relative group max-w-2xl mx-auto lg:mx-0 transform transition-all focus-within:scale-[1.03] focus-within:-translate-y-1 duration-300">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-[3rem] blur opacity-15 group-focus-within:opacity-40 transition duration-500" />
-              <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 overflow-hidden">
-                <Search className="ml-8 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={28} />
+
+            <div className="relative group max-w-2xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-[2rem] blur-xl opacity-10 group-focus-within:opacity-20 transition duration-700" />
+              <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-[2rem] shadow-xl overflow-hidden transition-all duration-500 focus-within:scale-[1.01]">
+                <Search className="ml-6 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={20} />
                 <input 
                   type="text"
                   placeholder={t('app.search_placeholder')}
-                  className="w-full pl-6 pr-28 py-7 bg-transparent outline-none dark:text-white text-xl font-bold placeholder:text-slate-400 dark:placeholder:text-slate-700"
+                  className="w-full pl-4 pr-16 py-5 bg-transparent outline-none dark:text-white text-lg font-black placeholder:text-slate-300 dark:placeholder:text-slate-700"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  aria-label="Search utilities"
                 />
               </div>
             </div>
           </div>
-          
-          {/* Hero Ad Slot */}
-          {!category && (
-            <div className="w-full lg:w-[380px] shrink-0 hidden md:block">
-              <div className="p-4 bg-slate-50/50 dark:bg-slate-900/50 rounded-[3rem] border border-slate-200/50 dark:border-slate-800/50 shadow-inner">
-                 <AdSlot className="h-[300px] !bg-white dark:!bg-slate-950 !border-none !rounded-[2.5rem] shadow-lg" type="square" />
-              </div>
-            </div>
-          )}
+
+          {/* Hero Side Ad */}
+          <div className="hidden lg:block w-80 shrink-0">
+            <AdSlot type="square" className="h-64 shadow-inner" />
+          </div>
         </div>
       </section>
 
-      {/* Recent Tools Section */}
-      {!category && !searchQuery && recentTools.length > 0 && (
-        <section className="px-6 md:px-16 pt-12 pb-6 bg-slate-50/50 dark:bg-slate-950">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border dark:border-slate-800 shadow-sm">
-                <History size={20} className="text-slate-400" />
-              </div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight uppercase tracking-widest text-xs">{t('app.recent_tools')}</h2>
+      {/* Activity Dashboard */}
+      {!category && !searchQuery && (
+        <section className="px-6 md:px-16 py-12 bg-white dark:bg-slate-950">
+          <div className="max-w-7xl mx-auto space-y-8">
+            <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400">
+                <Activity size={20} className="animate-pulse" />
+                <h2 className="text-xs font-black uppercase tracking-[0.2em]">{t('stats.title')}</h2>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-              {recentTools.map(tool => (
-                <Link 
-                  key={tool.id} 
-                  to={`/tool/${tool.id}`}
-                  className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:border-indigo-500 transition-all shrink-0 group"
-                >
-                  <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                    {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 18 })}
-                  </div>
-                  <span className="font-bold text-sm text-slate-800 dark:text-slate-200">{tool.name[lang]}</span>
-                </Link>
-              ))}
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatCard 
+                icon={<Zap size={24} />} 
+                label={t('stats.tools_used')} 
+                value={stats.toolsUsed} 
+                subValue="Times"
+                gradient="from-indigo-600 to-blue-600" 
+              />
+              <StatCard 
+                icon={<FileText size={24} />} 
+                label={t('stats.chars_processed')} 
+                value={stats.charsProcessed.toLocaleString()} 
+                subValue="Chars"
+                gradient="from-purple-600 to-pink-600" 
+              />
+              <StatCard 
+                icon={<HardDrive size={24} />} 
+                label={t('stats.storage_saved')} 
+                value={formatSize(stats.storageSaved)} 
+                subValue="Space"
+                gradient="from-emerald-600 to-teal-600" 
+              />
             </div>
           </div>
         </section>
       )}
 
-      {/* Grid Content */}
-      <section className="flex-1 px-6 md:px-16 pt-12 pb-32 bg-slate-50/50 dark:bg-slate-950">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-16 gap-6">
-            <div className="flex items-center gap-5">
-              <div className="p-4 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
-                <Grid3X3 size={24} className="text-indigo-500" />
+      {/* Tools Grid Section */}
+      <section className="px-6 md:px-16 pt-12 pb-32 bg-white dark:bg-slate-950">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-md border dark:border-slate-800">
+                <Grid3X3 size={24} className="text-indigo-600" />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
                   {category ? t(`nav.${category}`) : t('app.popular_tools')}
                 </h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{t('app.tools_active')}</span>
-                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {t('app.tools_active')}
+                </span>
               </div>
-            </div>
-            
-            <div className="group relative flex items-center gap-4 px-7 py-3.5 bg-indigo-600 text-white rounded-3xl shadow-xl shadow-indigo-600/20 hover:scale-105 transition-all cursor-default">
-               <Zap size={20} className="text-amber-300 animate-pulse" />
-               <span className="text-lg font-black tracking-tight">
-                 {t('app.tools_available', { count: filteredTools.length })}
-               </span>
             </div>
           </div>
 
-          {filteredTools.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredTools.map((tool, idx) => (
-                <React.Fragment key={tool.id}>
-                  <ToolCard tool={tool} lang={lang} t={t} />
-                  {(idx + 1) % 8 === 0 && (
-                    <div className="col-span-full my-8">
-                      <AdSlot className="h-44 shadow-sm" />
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-40 bg-white dark:bg-slate-900/50 rounded-[4rem] border-2 border-dashed border-slate-200 dark:border-slate-800 shadow-inner">
-              <div className="bg-slate-50 dark:bg-slate-800 w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-10 shadow-sm">
-                <Search size={48} className="text-slate-200 dark:text-slate-700" />
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 font-bold text-2xl tracking-tight">No tools match your search criteria.</p>
-              <button 
-                onClick={() => setSearchQuery('')} 
-                className="mt-8 px-10 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
-              >
-                Clear all filters
-              </button>
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredTools.map((tool) => (
+              <ToolCard 
+                key={tool.id} 
+                tool={tool} 
+                lang={lang} 
+                t={t} 
+                colorClass={getThemeColorClass(tool.themeColor)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Ad Slot */}
+        <div className="max-w-7xl mx-auto mt-20">
+          <AdSlot type="banner" className="h-32 md:h-48" />
         </div>
       </section>
-
-      {/* Bottom Ad Section */}
-      <div className="mt-auto px-6 md:px-16 pb-20 bg-slate-50/50 dark:bg-slate-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-5 mb-10">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-            <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.5em]">{t('common.advertisement')}</span>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-          </div>
-          <AdSlot className="h-32" />
-        </div>
-      </div>
     </div>
   );
 };
 
-const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t }) => {
+const StatCard: React.FC<{ icon: React.ReactNode, label: string, value: string | number, subValue: string, gradient: string }> = ({ icon, label, value, subValue, gradient }) => (
+  <div className="group relative p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden">
+    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-[0.05] group-hover:opacity-[0.1] transition-opacity rounded-full -mr-16 -mt-16`} />
+    <div className="relative z-10 space-y-6">
+      <div className={`p-4 bg-gradient-to-br ${gradient} text-white rounded-xl w-fit shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</p>
+        <div className="flex items-baseline gap-1.5">
+          <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{value}</p>
+          <span className="text-[10px] font-bold text-slate-400 uppercase">{subValue}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ToolCard: React.FC<{ tool: any, lang: string, t: any, colorClass: string }> = ({ tool, lang, t, colorClass }) => {
   const isAI = tool.id.includes('ai-');
-  
   return (
     <Link 
       to={`/tool/${tool.id}`}
-      className={`group p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 transition-all duration-500 flex flex-col justify-between relative overflow-hidden ${
-        tool.disabled 
-        ? 'opacity-80 grayscale-[0.5] border-slate-200 dark:border-slate-800 cursor-help' 
-        : 'hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10'
+      className={`group relative p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 transition-all duration-500 flex flex-col justify-between overflow-hidden hover:border-indigo-500 hover:shadow-[0_20px_40px_-12px_rgba(79,70,229,0.15)] hover:-translate-y-2 ${
+        tool.disabled ? 'opacity-70 grayscale' : ''
       }`}
-      aria-label={`${tool.name[lang]} - ${tool.description[lang]}`}
     >
-      <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
-
-      <div className="absolute top-6 right-6 z-20 flex flex-col items-end gap-2">
-        {tool.disabled ? (
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm">
-             <Construction size={10} />
-             {lang === 'ko' ? '점검 중' : 'Maintenance'}
+      <div className="absolute top-6 right-6 z-20">
+        {isAI && !tool.disabled && (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg animate-pulse">
+             <Sparkles size={10} /> {t('common.beta')}
           </div>
-        ) : isAI ? (
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 animate-pulse">
-             <Sparkles size={10} />
-             {t('common.beta')}
-          </div>
-        ) : null}
+        )}
       </div>
 
-      <div className="space-y-10 relative z-10">
-        <div className="flex items-start justify-between">
-          <div className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl transition-all duration-500 shadow-sm ${tool.disabled ? '' : 'group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-indigo-500/30 group-hover:scale-110 group-hover:-rotate-3'}`}>
-            {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 36 })}
-          </div>
-          {!tool.disabled && (
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-300 dark:text-slate-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-all">
-               <ArrowRight size={22} className="transform group-hover:translate-x-1 transition-transform" />
-            </div>
-          )}
+      <div className="space-y-10">
+        <div className={`p-6 rounded-2xl w-fit transition-all duration-500 group-hover:text-white group-hover:rotate-[8deg] ${colorClass}`}>
+          {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 36 })}
         </div>
-        <div className="space-y-4">
-          <h3 className={`font-black text-2xl text-slate-900 dark:text-slate-100 transition-colors tracking-tight leading-tight ${tool.disabled ? 'opacity-70' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+        <div className="space-y-3">
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter group-hover:text-indigo-600 transition-colors">
             {tool.name[lang]}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-bold">
+          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-bold">
             {tool.description[lang]}
           </p>
         </div>
       </div>
-      
-      <div className={`mt-10 pt-8 border-t dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10`}>
-        <span className="text-[11px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-          {tool.disabled ? (lang === 'ko' ? '일시 중단' : 'Paused') : t('common.launch')} <ArrowRight size={14} />
-        </span>
+
+      <div className="mt-10 pt-8 border-t dark:border-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] translate-x-[-10px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
+          {t('common.launch')} <ArrowRight size={14} />
+        </div>
+        <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-all">
+           <ChevronRight size={14} />
+        </div>
       </div>
     </Link>
   );

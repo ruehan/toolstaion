@@ -26,10 +26,11 @@ const ToolDetailView: React.FC = () => {
     if (id) {
       const saved = localStorage.getItem('recentTools');
       let recent: string[] = saved ? JSON.parse(saved) : [];
-      // Move to front and keep unique
       recent = [id, ...recent.filter(item => item !== id)].slice(0, 8);
       localStorage.setItem('recentTools', JSON.stringify(recent));
     }
+    const main = document.querySelector('main');
+    if (main) main.scrollTop = 0;
   }, [id]);
 
   if (!tool) {
@@ -87,58 +88,51 @@ const ToolDetailView: React.FC = () => {
         </div>
       </div>
 
-      {/* Detail Layout */}
+      {/* Tool Container */}
       <div className="flex-1 flex flex-col">
-        {/* The Functional Tool Area */}
-        <div className="flex-1 min-h-[550px] bg-white dark:bg-slate-950 border-b dark:border-slate-800">
+        <div className="flex-1 min-h-[500px] bg-white dark:bg-slate-950">
           {renderTool()}
         </div>
 
-        {/* Info & Guide Section */}
-        <div className="bg-slate-50 dark:bg-slate-900/50 pt-16 pb-24 border-t dark:border-slate-800">
+        {/* Guide Section */}
+        <div className="bg-white dark:bg-slate-950 pt-16 pb-32">
           <div className="max-w-4xl mx-auto px-8 space-y-16">
-            
-            {/* Guide Card */}
             <div className="p-10 md:p-14 bg-white dark:bg-slate-900 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-10">
-                <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-600/20">
+                <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg">
                   <HelpCircle size={22} />
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'ko' ? `${tool.name[lang]} 사용 가이드` : `Guide for ${tool.name[lang]}`}
+                    {lang === 'ko' ? `${tool.name[lang]} 가이드` : `${tool.name[lang]} Guide`}
                   </h2>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Detailed Instructions & FAQ</p>
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {tool.guide[lang].map((item, idx) => (
-                  <div key={idx} className="space-y-4">
+                  <div key={idx} className="space-y-3">
                     <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-3">
-                      <span className="w-7 h-7 flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/40 rounded-lg text-xs font-black text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50">{idx + 1}</span>
+                      <span className="w-6 h-6 flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/40 rounded-lg text-[10px] font-black text-indigo-600 dark:text-indigo-400">{idx + 1}</span>
                       {item.title}
                     </h3>
-                    <p className="text-[15px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                       {item.content}
                     </p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-12 pt-8 border-t dark:border-slate-800 flex items-start gap-3 text-slate-500 dark:text-slate-400">
-                <Info size={18} className="shrink-0 mt-0.5 text-indigo-500" />
-                <p className="text-[13px] font-medium leading-relaxed">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">Privacy Notice:</span> {t('app.privacy_note')}
+              <div className="mt-12 pt-8 border-t dark:border-slate-800 flex items-start gap-3 text-slate-400">
+                <Info size={16} className="shrink-0 mt-0.5 text-indigo-500" />
+                <p className="text-[12px] font-medium leading-relaxed">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">Privacy:</span> {t('app.privacy_note')}
                 </p>
               </div>
             </div>
 
             {/* Bottom Ad Slot */}
-            <div className="space-y-4 pt-10">
-              <AdSlot className="h-48 md:h-64" type="banner" />
-            </div>
-
+            <AdSlot className="h-48 md:h-64" type="banner" />
           </div>
         </div>
       </div>
