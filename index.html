@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolStation - All-in-One Privacy-First Utility</title>
+    <meta name="description" content="ToolStation provides free, client-side utility tools for images, text, and developers. No data ever leaves your browser.">
+    <meta name="keywords" content="image converter, json formatter, character counter, qr generator, privacy tool, online utility">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234f46e5;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%233730a3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='url(%23g)'/%3E%3Cpath d='M4 6C4 5.45 4.45 5 5 5h14c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1H5c-.55 0-1-.45-1-1V6z' fill='%23fff'/%3E%3Cpath d='M10 10h4v8c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-8z' fill='%23fff' fill-opacity='0.7'/%3E%3Cpath d='M6 14h2v2H6v-2z' fill='%23fff' fill-opacity='0.4'/%3E%3Cpath d='M16 14h2v2h-2v-2z' fill='%23fff' fill-opacity='0.4'/%3E%3C/svg%3E">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5755103615230819" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        body { 
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        .font-mono { font-family: var(--font-mono) !important; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html, body { height: 100%; overflow: hidden; letter-spacing: -0.01em; }
+        .transition-all { transition-duration: 250ms; }
+        
+        .hero-pattern {
+            background-image: radial-gradient(rgba(79, 70, 229, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .dark .hero-pattern {
+            background-image: radial-gradient(rgba(79, 70, 229, 0.1) 1px, transparent 1px);
+        }
+        
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "qrcode": "https://esm.sh/qrcode@^1.5.4",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div id="root" class="h-full"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
