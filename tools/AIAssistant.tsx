@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { Sparkles, Loader2, Copy, Check, AlertCircle } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, AlertCircle, AlertTriangle, X, Info } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 
 const AIAssistant: React.FC = () => {
@@ -10,6 +10,7 @@ const AIAssistant: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
   const { lang, t } = useLanguage();
 
   const handleAIAction = async (promptType: 'grammar' | 'summarize' | 'professional' | 'translate') => {
@@ -55,7 +56,13 @@ const AIAssistant: React.FC = () => {
 
       setResult(response.text || '');
     } catch (err: any) {
-      setError(err.message || (lang === 'ko' ? 'AI 요청 중 오류가 발생했습니다.' : 'AI error occurred.'));
+      // Handle Quota Exceeded (Free Tier limit)
+      const errorMsg = err.message || '';
+      if (errorMsg.includes('429') || errorMsg.toLowerCase().includes('quota') || errorMsg.toLowerCase().includes('exhausted')) {
+        setShowQuotaModal(true);
+      } else {
+        setError(errorMsg || (lang === 'ko' ? 'AI 요청 중 오류가 발생했습니다.' : 'AI error occurred.'));
+      }
     } finally {
       setLoading(false);
     }
@@ -69,9 +76,48 @@ const AIAssistant: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden bg-white dark:bg-slate-950">
+      {/* Quota Exceeded Modal */}
+      {showQuotaModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+           <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md" onClick={() => setShowQuotaModal(false)} />
+           <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-300">
+              <button onClick={() => setShowQuotaModal(false)} className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-all">
+                <X size={20} />
+              </button>
+              
+              <div className="flex flex-col items-center text-center gap-6">
+                 <div className="p-6 bg-rose-50 dark:bg-rose-900/20 rounded-[2.5rem] text-rose-500 shadow-sm border border-rose-100 dark:border-rose-900/30">
+                    <AlertTriangle size={48} />
+                 </div>
+                 <div className="space-y-3">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+                       {t('error.quota_title')}
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+                       {t('error.quota_desc')}
+                    </p>
+                 </div>
+                 <button 
+                  onClick={() => setShowQuotaModal(false)}
+                  className="w-full py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
+                 >
+                   {t('common.close')}
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* Input Side */}
       <div className="w-full md:w-1/2 p-8 flex flex-col gap-5 border-b md:border-b-0 md:border-r dark:border-slate-800">
-        <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Input Context</label>
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Input Context</label>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 animate-pulse">
+             <Sparkles size={10} />
+             {t('common.beta')}
+          </div>
+        </div>
+
         <textarea
           className={`flex-1 min-h-0 p-5 bg-slate-50 dark:bg-slate-900 border ${error ? 'border-rose-500' : 'border-slate-200 dark:border-slate-800'} rounded-[2rem] outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 text-[15px] font-medium leading-relaxed dark:text-slate-100 transition-all resize-none`}
           placeholder={lang === 'ko' ? "내용을 입력하세요..." : "Paste your text here..."}
@@ -89,11 +135,21 @@ const AIAssistant: React.FC = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <ActionButton label={t('ai.grammar')} onClick={() => handleAIAction('grammar')} loading={loading} />
-          <ActionButton label={t('ai.summarize')} onClick={() => handleAIAction('summarize')} loading={loading} />
-          <ActionButton label={t('ai.professional')} onClick={() => handleAIAction('professional')} loading={loading} />
-          <ActionButton label={t('ai.translate')} onClick={() => handleAIAction('translate')} loading={loading} />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <ActionButton label={t('ai.grammar')} onClick={() => handleAIAction('grammar')} loading={loading} />
+            <ActionButton label={t('ai.summarize')} onClick={() => handleAIAction('summarize')} loading={loading} />
+            <ActionButton label={t('ai.professional')} onClick={() => handleAIAction('professional')} loading={loading} />
+            <ActionButton label={t('ai.translate')} onClick={() => handleAIAction('translate')} loading={loading} />
+          </div>
+          
+          {/* Beta Notice Informational Box */}
+          <div className="p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 flex items-start gap-3">
+             <Info size={16} className="text-indigo-500 shrink-0 mt-0.5" />
+             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+               {t('common.beta_notice')}
+             </p>
+          </div>
         </div>
       </div>
 

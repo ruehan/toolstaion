@@ -1,19 +1,12 @@
 
 import React from 'react';
 import { useLanguage } from '../LanguageContext';
-import { Cpu, Key, Activity, ExternalLink, AlertTriangle, CheckCircle2, Box } from 'lucide-react';
+import { Sparkles, ShieldCheck, Box, MessageSquareMore } from 'lucide-react';
 
 const LegalView: React.FC<{ type: 'about' | 'privacy' | 'terms' }> = ({ type }) => {
   const { lang, t } = useLanguage();
 
   const currentDate = "2026-01-27";
-  const rawKey = process.env.API_KEY || '';
-  
-  // Logic to identify if it's the playground system key or a user key
-  const isSystemKey = rawKey === 'GEMINI_API_KEY' || !rawKey;
-  const maskedKey = isSystemKey 
-    ? (lang === 'ko' ? '시스템 관리 키 (Sandbox)' : 'System Managed (Sandbox)')
-    : (rawKey.length > 15 ? `${rawKey.substring(0, 12)}...${rawKey.substring(rawKey.length - 4)}` : rawKey);
 
   const content = {
     about: {
@@ -81,63 +74,36 @@ const LegalView: React.FC<{ type: 'about' | 'privacy' | 'terms' }> = ({ type }) 
 
         {type === 'about' && (
           <div className="mt-20 space-y-8">
-            <div className="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 space-y-8 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                   <Activity size={16} className="text-indigo-500" />
-                   {t('legal.sys_info')}
-                </h2>
-                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isSystemKey ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                   {isSystemKey ? <Box size={12} /> : <CheckCircle2 size={12} />}
-                   {isSystemKey ? 'Sandbox Mode' : 'Production Mode'}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <Key size={12} /> {t('legal.api_key')}
-                  </p>
-                  <div className={`p-4 border dark:border-slate-800 rounded-2xl font-mono text-sm font-bold shadow-inner overflow-hidden text-ellipsis ${isSystemKey ? 'bg-slate-100 text-slate-500 dark:bg-slate-950' : 'bg-white text-indigo-600 dark:bg-slate-950 dark:text-indigo-400'}`}>
-                    {maskedKey}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <Cpu size={12} /> {t('legal.active_model')}
-                  </p>
-                  <div className="p-4 bg-white dark:bg-slate-950 border dark:border-slate-800 rounded-2xl font-mono text-sm font-bold text-slate-700 dark:text-slate-300 shadow-inner">
-                    gemini-3-flash-preview
-                  </div>
-                </div>
+            <div className="p-10 bg-slate-50 dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 space-y-8 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Sparkles size={80} className="text-indigo-500" />
               </div>
 
-              {/* Deployment Explanation for User */}
-              <div className="space-y-4">
-                <div className="p-6 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-3xl space-y-3">
-                  <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-black text-xs uppercase tracking-tight">
-                    <AlertTriangle size={16} />
-                    {lang === 'ko' ? '왜 내 API 키가 아닌가요?' : 'Why is this not my API key?'}
-                  </div>
-                  <p className="text-[12px] text-indigo-600 dark:text-indigo-400/80 leading-relaxed font-bold">
-                    {lang === 'ko' 
-                      ? '이 화면은 개발 환경의 "미리보기"이므로 시스템이 제공하는 임시 테스트 키를 사용 중입니다. 따라서 별도의 설정 없이도 AI 기능이 작동하는 것입니다.' 
-                      : 'You are viewing this in a "Preview" environment which uses a built-in system key for testing purposes.'}
-                  </p>
-                </div>
+              <div className="flex items-center gap-3">
+                 <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg">
+                    <Box size={24} />
+                 </div>
+                 <div>
+                    <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                      {t('legal.beta_title')}
+                    </h2>
+                    <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1">Official Beta Phase</p>
+                 </div>
+              </div>
 
-                <div className="p-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-3xl space-y-4 shadow-xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-widest opacity-70">Vercel Deployment Guide</span>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-[10px] font-black underline flex items-center gap-1">GET YOUR KEY <ExternalLink size={10} /></a>
-                  </div>
-                  <p className="text-sm font-bold leading-snug">
-                    {lang === 'ko' 
-                      ? '본인의 Vercel에 배포하여 운영하시려면, Vercel 프로젝트 설정의 Environment Variables 메뉴에서 API_KEY를 직접 등록해야 정식으로 작동합니다.' 
-                      : 'To use your own API quota, add API_KEY to your Vercel Project Settings > Environment Variables.'}
-                  </p>
-                </div>
+              <p className="text-[15px] text-slate-600 dark:text-slate-400 font-bold leading-relaxed">
+                {t('legal.beta_desc')}
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="p-5 bg-white dark:bg-slate-950 border dark:border-slate-800 rounded-2xl flex items-center gap-3">
+                    <ShieldCheck size={20} className="text-emerald-500" />
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Privacy First Architecture</span>
+                 </div>
+                 <div className="p-5 bg-white dark:bg-slate-950 border dark:border-slate-800 rounded-2xl flex items-center gap-3">
+                    <MessageSquareMore size={20} className="text-blue-500" />
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Preparing Paid Scale-up</span>
+                 </div>
               </div>
             </div>
           </div>

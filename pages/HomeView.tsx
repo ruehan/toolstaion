@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, ArrowRight, Star, Grid3X3, Zap, ShieldCheck, History, Construction } from 'lucide-react';
+import { Search, ArrowRight, Star, Grid3X3, Zap, ShieldCheck, History, Construction, Sparkles } from 'lucide-react';
 import { TOOLS } from '../constants';
 import { Category } from '../types';
 import { useLanguage } from '../LanguageContext';
@@ -38,7 +38,7 @@ const HomeView: React.FC = () => {
   }, [category, searchQuery, lang]);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 animate-in fade-in duration-700">
+    <div className="flex-1 flex flex-col min-h-0">
       {/* Hidden H1 for SEO */}
       <h1 className="sr-only">
         {category ? `${t(`nav.${category}`)} - ToolStation` : "ToolStation - Free Private Utility Hub"}
@@ -62,7 +62,7 @@ const HomeView: React.FC = () => {
                 {category ? t(`nav.${category}`) : (
                   lang === 'ko' ? (
                     <>
-                      모든 도구를 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-cyan-400">한 곳에서</span>
+                      모든 도구를 <br className="hidden sm:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-cyan-400">한 곳에서</span>
                     </>
                   ) : (
                     <>
@@ -205,54 +205,63 @@ const HomeView: React.FC = () => {
   );
 };
 
-const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t }) => (
-  <Link 
-    to={`/tool/${tool.id}`}
-    className={`group p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 transition-all duration-500 flex flex-col justify-between relative overflow-hidden ${
-      tool.disabled 
-      ? 'opacity-80 grayscale-[0.5] border-slate-200 dark:border-slate-800 cursor-help' 
-      : 'hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10'
-    }`}
-    aria-label={`${tool.name[lang]} - ${tool.description[lang]}`}
-  >
-    <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
+const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t }) => {
+  const isAI = tool.id.includes('ai-');
+  
+  return (
+    <Link 
+      to={`/tool/${tool.id}`}
+      className={`group p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 transition-all duration-500 flex flex-col justify-between relative overflow-hidden ${
+        tool.disabled 
+        ? 'opacity-80 grayscale-[0.5] border-slate-200 dark:border-slate-800 cursor-help' 
+        : 'hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10'
+      }`}
+      aria-label={`${tool.name[lang]} - ${tool.description[lang]}`}
+    >
+      <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
 
-    {tool.disabled && (
-      <div className="absolute top-6 right-6 z-20">
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm">
-           <Construction size={10} />
-           {lang === 'ko' ? '점검 중' : 'Maintenance'}
-        </div>
-      </div>
-    )}
-
-    <div className="space-y-10 relative z-10">
-      <div className="flex items-start justify-between">
-        <div className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl transition-all duration-500 shadow-sm ${tool.disabled ? '' : 'group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-indigo-500/30 group-hover:scale-110 group-hover:-rotate-3'}`}>
-          {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 36 })}
-        </div>
-        {!tool.disabled && (
-          <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-300 dark:text-slate-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-all">
-             <ArrowRight size={22} className="transform group-hover:translate-x-1 transition-transform" />
+      <div className="absolute top-6 right-6 z-20 flex flex-col items-end gap-2">
+        {tool.disabled ? (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm">
+             <Construction size={10} />
+             {lang === 'ko' ? '점검 중' : 'Maintenance'}
           </div>
-        )}
+        ) : isAI ? (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 animate-pulse">
+             <Sparkles size={10} />
+             {t('common.beta')}
+          </div>
+        ) : null}
       </div>
-      <div className="space-y-4">
-        <h3 className={`font-black text-2xl text-slate-900 dark:text-slate-100 transition-colors tracking-tight leading-tight ${tool.disabled ? 'opacity-70' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
-          {tool.name[lang]}
-        </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-bold">
-          {tool.description[lang]}
-        </p>
+
+      <div className="space-y-10 relative z-10">
+        <div className="flex items-start justify-between">
+          <div className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl transition-all duration-500 shadow-sm ${tool.disabled ? '' : 'group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-indigo-500/30 group-hover:scale-110 group-hover:-rotate-3'}`}>
+            {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 36 })}
+          </div>
+          {!tool.disabled && (
+            <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-300 dark:text-slate-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-all">
+               <ArrowRight size={22} className="transform group-hover:translate-x-1 transition-transform" />
+            </div>
+          )}
+        </div>
+        <div className="space-y-4">
+          <h3 className={`font-black text-2xl text-slate-900 dark:text-slate-100 transition-colors tracking-tight leading-tight ${tool.disabled ? 'opacity-70' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+            {tool.name[lang]}
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-bold">
+            {tool.description[lang]}
+          </p>
+        </div>
       </div>
-    </div>
-    
-    <div className={`mt-10 pt-8 border-t dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10`}>
-      <span className="text-[11px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-        {tool.disabled ? (lang === 'ko' ? '일시 중단' : 'Paused') : t('common.launch')} <ArrowRight size={14} />
-      </span>
-    </div>
-  </Link>
-);
+      
+      <div className={`mt-10 pt-8 border-t dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10`}>
+        <span className="text-[11px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
+          {tool.disabled ? (lang === 'ko' ? '일시 중단' : 'Paused') : t('common.launch')} <ArrowRight size={14} />
+        </span>
+      </div>
+    </Link>
+  );
+};
 
 export default HomeView;
