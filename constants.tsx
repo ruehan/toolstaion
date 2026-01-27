@@ -10,7 +10,9 @@ import {
   FileOutput,
   Scale,
   Sparkles,
-  ArrowRightLeft
+  ArrowRightLeft,
+  ImageIcon,
+  Ruler
 } from 'lucide-react';
 
 export interface Tool {
@@ -20,6 +22,7 @@ export interface Tool {
   guide: Record<string, { title: string, content: string }[]>;
   category: string;
   icon: React.ReactNode;
+  disabled?: boolean;
 }
 
 export const TOOLS: Tool[] = [
@@ -42,6 +45,27 @@ export const TOOLS: Tool[] = [
     },
     category: 'text',
     icon: <Sparkles size={24} className="text-purple-600" />
+  },
+  {
+    id: 'ai-image-generator',
+    name: { ko: 'AI 이미지 생성기', en: 'AI Image Generator' },
+    description: { 
+      ko: '텍스트 설명만으로 고화질 이미지를 즉시 생성합니다.', 
+      en: 'Generate high-quality images instantly from text descriptions.' 
+    },
+    guide: {
+      ko: [
+        { title: "상태", content: "현재 서비스 최적화를 위해 임시 점검 중입니다. 곧 다시 이용하실 수 있습니다." },
+        { title: "팁", content: "상세한 묘사를 추가할수록 더 멋진 결과물이 나옵니다. 영어 프롬프트가 더 정확할 수 있습니다." }
+      ],
+      en: [
+        { title: "Status", content: "Currently under maintenance for optimization. Please check back later." },
+        { title: "Tip", content: "Detailed descriptions yield better results. You can describe style, lighting, and composition." }
+      ]
+    },
+    category: 'image',
+    icon: <ImageIcon size={24} className="text-indigo-600" />,
+    disabled: true
   },
   {
     id: 'image-converter',

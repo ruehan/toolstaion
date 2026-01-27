@@ -15,7 +15,8 @@ import {
   Languages,
   Shield,
   FileText,
-  Info
+  Info,
+  Activity
 } from 'lucide-react';
 import HomeView from './pages/HomeView';
 import ToolDetailView from './pages/ToolDetailView';
@@ -128,9 +129,21 @@ const App: React.FC = () => {
             <NavLink to="/terms" icon={<FileText size={18} />} label={t('nav.terms')} active={location.pathname === '/terms'} />
           </nav>
           
-          <footer className="mt-auto pt-6 border-t dark:border-slate-800">
-             <p className="px-3 text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">{t('footer.rights')}</p>
-             <p className="px-3 mt-1 text-[9px] text-slate-500 font-bold">{t('footer.contact')}</p>
+          <footer className="mt-auto pt-6 border-t dark:border-slate-800 flex flex-col gap-4">
+             <div className="px-3 py-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('legal.api_status')}</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                </div>
+                <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                  <Activity size={10} className="text-indigo-500" />
+                  {t('legal.api_connected')}
+                </p>
+             </div>
+             <div>
+               <p className="px-3 text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">{t('footer.rights')}</p>
+               <p className="px-3 mt-1 text-[9px] text-slate-500 font-bold">{t('footer.contact')}</p>
+             </div>
           </footer>
         </aside>
 

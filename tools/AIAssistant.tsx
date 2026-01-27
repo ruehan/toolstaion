@@ -18,6 +18,13 @@ const AIAssistant: React.FC = () => {
       return;
     }
 
+    if (!process.env.API_KEY) {
+      setError(lang === 'ko' 
+        ? 'API 키가 설정되지 않았습니다. Vercel 환경 변수에 API_KEY를 추가해주세요.' 
+        : 'API Key is missing. Please add API_KEY to your environment variables.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -76,9 +83,9 @@ const AIAssistant: React.FC = () => {
         />
         
         {error && (
-          <div className="p-4 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center gap-2 text-xs font-bold border border-rose-100 dark:border-rose-900/30">
-            <AlertCircle size={14} />
-            {error}
+          <div className="p-4 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center gap-2 text-xs font-bold border border-rose-100 dark:border-rose-900/30 shadow-sm animate-in fade-in slide-in-from-top-1">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -133,7 +140,7 @@ const ActionButton: React.FC<{ label: string, onClick: () => void, loading: bool
   <button 
     disabled={loading}
     onClick={onClick}
-    className="py-4 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-[13px] text-slate-700 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 transition-all disabled:opacity-50 active:scale-95"
+    className="py-4 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-[13px] text-slate-700 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 transition-all disabled:opacity-50 active:scale-95 shadow-sm"
   >
     {label}
   </button>

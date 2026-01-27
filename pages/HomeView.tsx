@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, ArrowRight, Star, Grid3X3, Zap, ShieldCheck } from 'lucide-react';
+import { Search, ArrowRight, Star, Grid3X3, Zap, ShieldCheck, History, Construction } from 'lucide-react';
 import { TOOLS } from '../constants';
 import { Category } from '../types';
 import { useLanguage } from '../LanguageContext';
@@ -10,7 +10,21 @@ import AdSlot from '../components/AdSlot';
 const HomeView: React.FC = () => {
   const { category } = useParams<{ category: Category }>();
   const [searchQuery, setSearchQuery] = useState('');
+  const [recentToolIds, setRecentToolIds] = useState<string[]>([]);
   const { lang, t } = useLanguage();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('recentTools');
+    if (saved) {
+      setRecentToolIds(JSON.parse(saved));
+    }
+  }, []);
+
+  const recentTools = useMemo(() => {
+    return recentToolIds
+      .map(id => TOOLS.find(t => t.id === id))
+      .filter((t): t is typeof TOOLS[0] => !!t);
+  }, [recentToolIds]);
 
   const filteredTools = useMemo(() => {
     return TOOLS.filter(tool => {
@@ -62,7 +76,7 @@ const HomeView: React.FC = () => {
               </p>
             </div>
             
-            {/* Search Input - Command Palette Style */}
+            {/* Search Input */}
             <div className="relative group max-w-2xl mx-auto lg:mx-0 transform transition-all focus-within:scale-[1.03] focus-within:-translate-y-1 duration-300">
               <div className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-[3rem] blur opacity-15 group-focus-within:opacity-40 transition duration-500" />
               <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 overflow-hidden">
@@ -75,10 +89,6 @@ const HomeView: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="Search utilities"
                 />
-                <div className="absolute right-8 flex items-center gap-2 pointer-events-none hidden sm:flex">
-                  <span className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 rounded-lg border border-slate-200 dark:border-slate-700">CTRL</span>
-                  <span className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 rounded-lg border border-slate-200 dark:border-slate-700">K</span>
-                </div>
               </div>
             </div>
           </div>
@@ -94,10 +104,38 @@ const HomeView: React.FC = () => {
         </div>
       </section>
 
+      {/* Recent Tools Section */}
+      {!category && !searchQuery && recentTools.length > 0 && (
+        <section className="px-6 md:px-16 pt-12 pb-6 bg-slate-50/50 dark:bg-slate-950">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border dark:border-slate-800 shadow-sm">
+                <History size={20} className="text-slate-400" />
+              </div>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight uppercase tracking-widest text-xs">{t('app.recent_tools')}</h2>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+              {recentTools.map(tool => (
+                <Link 
+                  key={tool.id} 
+                  to={`/tool/${tool.id}`}
+                  className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:border-indigo-500 transition-all shrink-0 group"
+                >
+                  <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 18 })}
+                  </div>
+                  <span className="font-bold text-sm text-slate-800 dark:text-slate-200">{tool.name[lang]}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Grid Content */}
       <section className="flex-1 px-6 md:px-16 pt-12 pb-32 bg-slate-50/50 dark:bg-slate-950">
         <div className="max-w-7xl mx-auto">
-          {/* Section Header with Tool Count Badge */}
+          {/* Section Header */}
           <div className="flex flex-col sm:flex-row items-center justify-between mb-16 gap-6">
             <div className="flex items-center gap-5">
               <div className="p-4 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
@@ -119,7 +157,6 @@ const HomeView: React.FC = () => {
                <span className="text-lg font-black tracking-tight">
                  {t('app.tools_available', { count: filteredTools.length })}
                </span>
-               <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full blur-sm opacity-50" />
             </div>
           </div>
 
@@ -171,24 +208,37 @@ const HomeView: React.FC = () => {
 const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t }) => (
   <Link 
     to={`/tool/${tool.id}`}
-    className="group p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 flex flex-col justify-between relative overflow-hidden"
+    className={`group p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 transition-all duration-500 flex flex-col justify-between relative overflow-hidden ${
+      tool.disabled 
+      ? 'opacity-80 grayscale-[0.5] border-slate-200 dark:border-slate-800 cursor-help' 
+      : 'hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10'
+    }`}
     aria-label={`${tool.name[lang]} - ${tool.description[lang]}`}
   >
-    {/* Subtle card accent */}
     <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
+
+    {tool.disabled && (
+      <div className="absolute top-6 right-6 z-20">
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm">
+           <Construction size={10} />
+           {lang === 'ko' ? '점검 중' : 'Maintenance'}
+        </div>
+      </div>
+    )}
 
     <div className="space-y-10 relative z-10">
       <div className="flex items-start justify-between">
-        <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-indigo-500/30 group-hover:scale-110 group-hover:-rotate-3">
-          {/* Fix: Cast icon as React.ReactElement<any> to allow 'size' prop in cloneElement */}
+        <div className={`p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl transition-all duration-500 shadow-sm ${tool.disabled ? '' : 'group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-indigo-500/30 group-hover:scale-110 group-hover:-rotate-3'}`}>
           {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 36 })}
         </div>
-        <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-300 dark:text-slate-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-all">
-           <ArrowRight size={22} className="transform group-hover:translate-x-1 transition-transform" />
-        </div>
+        {!tool.disabled && (
+          <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-300 dark:text-slate-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-all">
+             <ArrowRight size={22} className="transform group-hover:translate-x-1 transition-transform" />
+          </div>
+        )}
       </div>
       <div className="space-y-4">
-        <h3 className="font-black text-2xl text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight leading-tight">
+        <h3 className={`font-black text-2xl text-slate-900 dark:text-slate-100 transition-colors tracking-tight leading-tight ${tool.disabled ? 'opacity-70' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
           {tool.name[lang]}
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-bold">
@@ -197,9 +247,9 @@ const ToolCard: React.FC<{ tool: any, lang: string, t: any }> = ({ tool, lang, t
       </div>
     </div>
     
-    <div className="mt-10 pt-8 border-t dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10">
+    <div className={`mt-10 pt-8 border-t dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10`}>
       <span className="text-[11px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-        {t('common.launch')} <ArrowRight size={14} />
+        {tool.disabled ? (lang === 'ko' ? '일시 중단' : 'Paused') : t('common.launch')} <ArrowRight size={14} />
       </span>
     </div>
   </Link>

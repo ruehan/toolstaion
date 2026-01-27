@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, Info, Share2, HelpCircle } from 'lucide-react';
 import { TOOLS } from '../constants';
@@ -13,6 +13,7 @@ import SqlFormatter from '../tools/SqlFormatter';
 import QrGenerator from '../tools/QrGenerator';
 import PasswordGenerator from '../tools/PasswordGenerator';
 import AIAssistant from '../tools/AIAssistant';
+import AIImageGenerator from '../tools/AIImageGenerator';
 import { useLanguage } from '../LanguageContext';
 import AdSlot from '../components/AdSlot';
 
@@ -20,6 +21,16 @@ const ToolDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const tool = TOOLS.find(t => t.id === id);
   const { lang, t } = useLanguage();
+
+  useEffect(() => {
+    if (id) {
+      const saved = localStorage.getItem('recentTools');
+      let recent: string[] = saved ? JSON.parse(saved) : [];
+      // Move to front and keep unique
+      recent = [id, ...recent.filter(item => item !== id)].slice(0, 8);
+      localStorage.setItem('recentTools', JSON.stringify(recent));
+    }
+  }, [id]);
 
   if (!tool) {
     return (
@@ -33,6 +44,7 @@ const ToolDetailView: React.FC = () => {
   const renderTool = () => {
     switch (tool.id) {
       case 'ai-assistant': return <AIAssistant />;
+      case 'ai-image-generator': return <AIImageGenerator />;
       case 'image-converter': return <ImageConverter />;
       case 'image-compressor': return <ImageCompressor />;
       case 'word-counter': return <WordCounter />;
@@ -57,7 +69,6 @@ const ToolDetailView: React.FC = () => {
             </Link>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hidden sm:block">
-                {/* Fix: Cast icon as React.ReactElement<any> to allow 'size' prop in cloneElement */}
                 {React.cloneElement(tool.icon as React.ReactElement<any>, { size: 20 })}
               </div>
               <div>
@@ -125,11 +136,6 @@ const ToolDetailView: React.FC = () => {
 
             {/* Bottom Ad Slot */}
             <div className="space-y-4 pt-10">
-              <div className="flex items-center gap-4 px-4">
-                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-                <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">{t('common.advertisement')}</span>
-                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-              </div>
               <AdSlot className="h-48 md:h-64" type="banner" />
             </div>
 
