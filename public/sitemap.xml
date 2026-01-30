@@ -1,60 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://toolstation.io/</loc>
+    <loc>https://rue-toolstation.vercel.app/</loc>
     <lastmod>2026-01-27</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/category/image</loc>
+    <loc>https://rue-toolstation.vercel.app/category/image</loc>
     <lastmod>2026-01-27</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/category/text</loc>
+    <loc>https://rue-toolstation.vercel.app/category/text</loc>
     <lastmod>2026-01-27</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/category/dev</loc>
+    <loc>https://rue-toolstation.vercel.app/category/dev</loc>
     <lastmod>2026-01-27</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/category/utility</loc>
+    <loc>https://rue-toolstation.vercel.app/category/utility</loc>
     <lastmod>2026-01-27</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/ai-assistant</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/ai-assistant</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/ai-image-generator</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/ai-image-generator</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/image-converter</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/image-converter</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/image-compressor</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/image-compressor</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/word-counter</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/word-counter</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/json-formatter</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/json-formatter</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/qr-generator</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/qr-generator</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://toolstation.io/tool/password-generator</loc>
+    <loc>https://rue-toolstation.vercel.app/tool/password-generator</loc>
     <priority>0.7</priority>
   </url>
 </urlset>
